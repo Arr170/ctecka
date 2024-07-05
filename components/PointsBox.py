@@ -7,10 +7,9 @@ class PointsBox(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         
-        self.setMaximumWidth(400)
-
+        self.setFixedWidth(400)
         self.groupbox = QtWidgets.QGroupBox()
-        self.groupbox.setAlignment(Qt.AlignCenter)
+       # self.groupbox.setAlignment(Qt.AlignCenter)
         self.innerLayout = QtWidgets.QVBoxLayout()
 
         
@@ -43,15 +42,15 @@ class Point(QtWidgets.QWidget):
         
         self.setFixedSize(340, 100)
         if pointType:
-            self.setStyleSheet("background-color: green")
+            self.setStyleSheet("background-color: green; border-radius: 20px")
         else:
-            self.setStyleSheet("background-color: red")
+            self.setStyleSheet("background-color: red; border-radius: 20px")
         #self.setStyleSheet("background-color: red")
 
-        trackId = QtWidgets.QLabel(str(pointId))
+        trackId = QtWidgets.QLabel(str(pointId), alignment = Qt.AlignCenter)
         trackId.setFont(QFont("Arial", 20))
         
         layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(trackId, alignment=Qt.AlignCenter)
+        layout.addWidget(trackId)
 
     
