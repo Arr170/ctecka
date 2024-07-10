@@ -3,12 +3,17 @@ charset-normalizer==3.3.2
 future==1.0.0
 idna==3.7
 iso8601==2.1.0
+pillow==10.4.0
 pypng==0.20220715.0
 pyserial==3.5
 PySide6==6.7.1
 PySide6_Addons==6.7.1
 PySide6_Essentials==6.7.1
 PyYAML==6.0.1
+qrcode==7.4.2
+requests==2.32.3
 serial==0.0.97
 shiboken6==6.7.1
 six==1.16.0
+typing_extensions==4.12.2
+urllib3==2.2.2

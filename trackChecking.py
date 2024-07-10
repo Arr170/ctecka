@@ -32,6 +32,7 @@ def checkRoute(route: Route, scannedPoints: list[int]):
     CheckPointArr = []
     tracker = 0
     countCheck = 0
+    
     print("checking: ", route.name)
     for i in range(0, len(scannedPoints)):
         # print(i+1, " element")

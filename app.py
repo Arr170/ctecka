@@ -29,33 +29,6 @@ class MyWidget(QtWidgets.QWidget):
         self.horLayout.addWidget(self.pBox)
         self.horLayout.addWidget(self.form)
 
-
-
-    
-
-    @QtCore.Slot()
-    def showPoints(self, points):
-        track_a = [38, 35, 31, 34, 39, 32, 33, 36, 37]
-        track_b = [35, 31, 38, 39, 32, 33, 36, 34, 37]
-        track_c = [34, 32, 36, 38, 35, 31, 37, 35, 33, 39]
-
-        Ra = Route("A")
-        Ra.setRoute(track_a)
-
-        Rb = Route("B")
-        Rb.setRoute(track_b)
-
-        Rc = Route("C")
-        Rc.setRoute(track_c)
-
-        routeArr = [Ra, Rb, Rc]
-
-        for r in routeArr:
-                a = checkRoute(r, points)
-                if a.succes:
-                    for p in a.points:
-                        self.pBox.append(id = p.id, type = p.type)
-
         
 
 

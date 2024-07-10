@@ -8,7 +8,7 @@ from trackChecking import *
 import requests
 
 
-
+BASE_URL="http://127.0.0.1:5000"
 
 class FormWidget(QtWidgets.QWidget):
 
@@ -74,14 +74,14 @@ class FormWidget(QtWidgets.QWidget):
 
         
         self.timeLabel.hide()
-        self.timeLabel.setFont(QFont("Arial", 20))
+        self.timeLabel.setFont(QFont("Arial", 40))
         self.sayResultLabel.hide()
-        self.sayResultLabel.setFont(QFont("Arial", 20))
+        self.sayResultLabel.setFont(QFont("Arial", 40))
         self.nameInput.hide()
         self.sendButton.hide()
         
         self.nameLabel.setText("Čekám na čip...")
-        self.nameLabel.setFont(QFont("Arial", 20))
+        self.nameLabel.setFont(QFont("Arial", 40))
 
         #some spider web connections 
         self.sendButton.clicked.connect(self.sendButtonHandle)
@@ -109,7 +109,7 @@ class FormWidget(QtWidgets.QWidget):
                     arr=[]
                     for a in data["punches"]:
                         arr.append(a[0])
-                    self.resultTime = (data["finish"]-data["start"]).total_seconds()
+                    self.resultTime = (data["finish"]-data["start"]).total_seconds()*1000
                     self.showForm()
                     self.deviceDetected.emit(arr)
                     self.sir.ack_sicard()
@@ -117,6 +117,20 @@ class FormWidget(QtWidgets.QWidget):
             except Exception as e:
                 print(e, "in checkDevice")
                 self.sirConnected = False
+
+    def formateTime(self, time_in_millisec):
+        time_in_sec = time_in_millisec // 1000
+        millis = time_in_millisec % 1000
+        hours = time_in_sec // 3600
+        minutes = (time_in_sec % 3600) // 60
+        seconds = time_in_sec % 60
+
+        formatted = ""
+        if hours:
+            formatted += f"{hours:02d}:"
+        formatted += f"{minutes:02d}:{seconds:02d}.{millis:03d}"
+
+        return formatted
     
     def showForm(self):
         self.sendButton.show()
@@ -124,7 +138,7 @@ class FormWidget(QtWidgets.QWidget):
         self.nameInput.show()
         self.nameInput.setFocus()
 
-        time = "Čas: "+ str(self.resultTime)
+        time = "Čas: "+ str(self.formateTime(int(self.resultTime)))
         self.timeLabel.setText(time)
         self.timeLabel.show()
         
@@ -158,45 +172,44 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
+        data = requests.get(BASE_URL+"/tracks_data")
+        tracksData = data.json()
+
+        routesArr=[]
+
+        for track in tracksData:
+            r = Route(track["name"])
+            rPoints = []
+            for point in track["points"]:
+                rPoints.append(int(point["number"]))
+            r.setRoute(rPoints)
+            routesArr.append(r)    
+
+        
         self.pBox.clean()
 
         completeRoutePresent = False
-
-        track_a = [38, 35, 31, 34, 39, 32, 33, 36, 37]
-        track_b = [35, 31, 38, 39, 32, 33, 36, 34, 37]
-        track_c = [34, 32, 36, 38, 35, 31, 37, 35, 33, 39]
-
-        Ra = Route("A")
-        Ra.setRoute(track_a)
-
-        Rb = Route("B")
-        Rb.setRoute(track_b)
-
-        Rc = Route("C")
-        Rc.setRoute(track_c)
-
-        routeArr = [Ra, Rb, Rc]
         maxPointsIndex = [0, 0] #count, index 
 
 
-        for i, r in enumerate(routeArr):
+        for i, r in enumerate(routesArr):
                 a = checkRoute(r, points)
                 if a.succes:
                     completeRoutePresent = True
                     self.track = r.name
                     self.trackSucc = True
                     for p in a.points:
-                        self.pBox.append(id = p.id, type = p.type)
+                        self.pBox.append(id = p.id, type = p.type, inSuc = completeRoutePresent)
                     self.showResultLabel(r.name, True)
                     break
                 elif a.count > maxPointsIndex[1]:
                     maxPointsIndex[0] = a.count
                     maxPointsIndex[1] = i
         if(not completeRoutePresent):
-            a = checkRoute(routeArr[maxPointsIndex[1]], points)
+            a = checkRoute(routesArr[maxPointsIndex[1]], points)
             for p in a.points:
-                self.pBox.append(id = p.id, type = p.type)
-                self.showResultLabel(routeArr[maxPointsIndex[1]].name, False)
+                self.pBox.append(id = p.id, type = p.type, inSuc = completeRoutePresent)
+                self.showResultLabel(routesArr[maxPointsIndex[1]].name, False)
 
     @QtCore.Slot()
     def sendButtonHandle(self):
@@ -230,7 +243,7 @@ class FormWidget(QtWidgets.QWidget):
 
 
     def sendReq(self, time, name, track, date):
-        url = "http://192.168.0.104:5000/external_rslts_upload"
+        url = BASE_URL+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 

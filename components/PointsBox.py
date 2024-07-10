@@ -23,8 +23,8 @@ class PointsBox(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(scroll)
 
-    def append(self, type=1, id=1):
-        point = Point(type, id)
+    def append(self, type=1, id=1, inSuc=True):
+        point = Point(type, id, inSuc)
         self.innerLayout.addWidget(point)
 
     def setTrackName(self, trackName):
@@ -37,14 +37,19 @@ class PointsBox(QtWidgets.QWidget):
             self.innerLayout.itemAt(i).widget().deleteLater()
 
 class Point(QtWidgets.QWidget):
-    def __init__(self, pointType=None, pointId = None):
+    def __init__(self, pointType=None, pointId = None, inSuc = False):
         super().__init__()
         
         self.setFixedSize(340, 100)
         if pointType:
-            self.setStyleSheet("background-color: green; border-radius: 20px")
+            self.setStyleSheet("background-color: green; border-radius: 20px; color: black")
+        elif inSuc:
+
+            self.setStyleSheet("background-color: yellow; border-radius: 20px; color: black")
         else:
-            self.setStyleSheet("background-color: red; border-radius: 20px")
+            self.setStyleSheet("background-color: red; border-radius: 20px; color: black")
+
+
         #self.setStyleSheet("background-color: red")
 
         trackId = QtWidgets.QLabel(str(pointId), alignment = Qt.AlignCenter)
