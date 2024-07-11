@@ -113,6 +113,8 @@ class FormWidget(QtWidgets.QWidget):
                     self.showForm()
                     self.deviceDetected.emit(arr)
                     self.sir.ack_sicard()
+                    self.sir = None
+                    self.sirConnected = False
                 
             except Exception as e:
                 print(e, "in checkDevice")
