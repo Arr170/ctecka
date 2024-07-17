@@ -13,7 +13,7 @@ class QRcode(QtWidgets.QWidget):
         self.qrcode = QLabel()
 
 
-        url = "http://192.168.0.104:5000/" + "?forceFocus=" + str(id)
+        url = "http://192.168.0.140:5000" + "?forceFocus=" + str(id)
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(url)
         qr.make(fit=True)

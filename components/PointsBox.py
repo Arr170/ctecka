@@ -7,7 +7,7 @@ class PointsBox(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         
-        self.setFixedWidth(400)
+        self.setFixedWidth(200)
         self.groupbox = QtWidgets.QGroupBox()
        # self.groupbox.setAlignment(Qt.AlignCenter)
         self.innerLayout = QtWidgets.QVBoxLayout()
@@ -40,14 +40,19 @@ class Point(QtWidgets.QWidget):
     def __init__(self, pointType=None, pointId = None, inSuc = False):
         super().__init__()
         
-        self.setFixedSize(340, 100)
-        if pointType:
+        self.setFixedSize(150, 75)
+        if pointType == "suc":
             self.setStyleSheet("background-color: green; border-radius: 20px; color: black")
+            self.setToolTip("správně")
+        elif pointType == "sign":
+            self.setStyleSheet("background-color: grey; border-radius: 20px; color: black")
         elif inSuc:
 
             self.setStyleSheet("background-color: yellow; border-radius: 20px; color: black")
+            self.setToolTip("navíc")
         else:
             self.setStyleSheet("background-color: red; border-radius: 20px; color: black")
+            self.setToolTip("chyba")
 
 
         #self.setStyleSheet("background-color: red")

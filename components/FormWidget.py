@@ -6,6 +6,7 @@ from PySide6.QtGui import *
 from components import PointsBox, QRcode_maker
 from trackChecking import *
 import requests
+from datetime import date
 
 
 BASE_URL="http://127.0.0.1:5000"
@@ -19,23 +20,25 @@ class FormWidget(QtWidgets.QWidget):
     resultTime = 0
     trackSucc = False
     track = ''
+    
 
     def __init__(self):
         super().__init__()
 
         
         #elements
-        self.nameLabel = QtWidgets.QLabel(alignment=Qt.AlignCenter)
-        self.timeLabel = QtWidgets.QLabel("", alignment = Qt.AlignCenter)
-        self.sayResultLabel = QtWidgets.QLabel("", alignment = Qt.AlignCenter)
+        self.nameLabel = QLabel("Čekám na čip...", alignment = Qt.AlignCenter)
+        self.timeLabel = QLabel(alignment = Qt.AlignCenter)
+        self.sayResultLabel = QLabel(alignment = Qt.AlignCenter)
+        self.sayResultLabelBot = QLabel("Vlevo můžeš vědět, kde je chyba.", alignment = Qt.AlignCenter)
 
         self.nameInput = QtWidgets.QLineEdit()
         self.nameInput.setPlaceholderText("zde zadej jméno...")
-        self.nameInput.setFixedSize(900, 50)
+        self.nameInput.setFixedHeight(50)
         self.nameInput.setFont(QFont("Arial", 20))
 
-        self.sendButton =  QtWidgets.QPushButton("Odeslat")
-        self.sendButton.setFixedSize(200, 50)
+        self.sendButton =  QtWidgets.QPushButton(" Odeslat ")
+        self.sendButton.setFixedHeight(50)
         self.sendButton.setFont(QFont("Arial", 20))
 
         self.pBox = PointsBox.PointsBox()
@@ -54,15 +57,14 @@ class FormWidget(QtWidgets.QWidget):
         self.timer.start(1000) 
 
         #add needed elements to layout
-        #self.setLayout(self.grid)
-        self.grid.addWidget(self.pBox, 0, 0, -1, 2, Qt.AlignLeft)
-        self.grid.addWidget(self.nameLabel, 1, 2, Qt.AlignLeft)
+        self.grid.addWidget(self.pBox, 0, 0, -1, 1, Qt.AlignLeft)
+        self.grid.addWidget(self.nameLabel, 0, 2, Qt.AlignLeft)
         self.grid.addWidget(self.sayResultLabel, 1, 2, Qt.AlignCenter)
-        self.grid.addWidget(self.timeLabel, 2, 2, Qt.AlignCenter)
-        self.grid.addLayout(self.SH1layout, 3, 2, Qt.AlignCenter)
+        self.grid.addWidget(self.sayResultLabelBot, 2, 2, Qt.AlignCenter)
+        self.grid.addWidget(self.timeLabel, 3, 2, Qt.AlignCenter)
+        self.grid.addLayout(self.SH1layout, 4, 2, Qt.AlignCenter)
 
-        # self.layout.addWidget(self.pBox)
-        # self.layout.addWidget(self.nameLabel)
+       
         self.SH1layout.addWidget(self.nameInput)
         self.SH1layout.addWidget(self.sendButton)
 
@@ -77,10 +79,11 @@ class FormWidget(QtWidgets.QWidget):
         self.timeLabel.setFont(QFont("Arial", 40))
         self.sayResultLabel.hide()
         self.sayResultLabel.setFont(QFont("Arial", 40))
+        self.sayResultLabelBot.hide()
+        self.sayResultLabelBot.setFont(QFont("Arial", 40))
         self.nameInput.hide()
         self.sendButton.hide()
         
-        self.nameLabel.setText("Čekám na čip...")
         self.nameLabel.setFont(QFont("Arial", 40))
 
         #some spider web connections 
@@ -94,6 +97,8 @@ class FormWidget(QtWidgets.QWidget):
     def connectDevice(self):
         if not self.sirConnected:
             try:
+                self.sir = None
+                self.sirConnected = False
                 self.sir = SIReaderReadout()
                 self.sirConnected = True
                 return True
@@ -109,12 +114,13 @@ class FormWidget(QtWidgets.QWidget):
                     arr=[]
                     for a in data["punches"]:
                         arr.append(a[0])
+                    print(type(data["finish"]-data["start"]))
                     self.resultTime = (data["finish"]-data["start"]).total_seconds()*1000
+
                     self.showForm()
                     self.deviceDetected.emit(arr)
                     self.sir.ack_sicard()
-                    self.sir = None
-                    self.sirConnected = False
+                    
                 
             except Exception as e:
                 print(e, "in checkDevice")
@@ -135,6 +141,7 @@ class FormWidget(QtWidgets.QWidget):
         return formatted
     
     def showForm(self):
+        self.sayResultLabelBot.hide()
         self.sendButton.show()
         
         self.nameInput.show()
@@ -143,29 +150,29 @@ class FormWidget(QtWidgets.QWidget):
         time = "Čas: "+ str(self.formateTime(int(self.resultTime)))
         self.timeLabel.setText(time)
         self.timeLabel.show()
-        
         self.nameLabel.hide()
         
     def showResultLabel(self, routeName, succes):
         message = f"Trať {routeName} "
         succTrack = "zdolána úspěšně!"
-        unsuccTrack = "nebyla zcela splněna, vlevo můžeš vidět, kde je chyba."
+        unsuccTrack = "nebyla zcela splněna."
         if succes:
             message = message + succTrack
         else:
             message = message + unsuccTrack
+            self.sayResultLabelBot.show()
         self.sayResultLabel.setText(message)
         self.sayResultLabel.show()
 
 
     @QtCore.Slot()
     def hideForm(self):
-        print("removing...")
         self.nameLabel.show()
         self.nameInput.hide()
         self.nameInput.setText("")
         self.sendButton.hide()
         self.sayResultLabel.hide()
+        self.sayResultLabelBot.hide()
         self.timeLabel.hide()
         self.pBox.clean()
         self.resultTime = 0
@@ -193,7 +200,7 @@ class FormWidget(QtWidgets.QWidget):
         completeRoutePresent = False
         maxPointsIndex = [0, 0] #count, index 
 
-
+        self.pBox.append(id = "start", type="sign", inSuc=True)
         for i, r in enumerate(routesArr):
                 a = checkRoute(r, points)
                 if a.succes:
@@ -201,7 +208,12 @@ class FormWidget(QtWidgets.QWidget):
                     self.track = r.name
                     self.trackSucc = True
                     for p in a.points:
-                        self.pBox.append(id = p.id, type = p.type, inSuc = completeRoutePresent)
+                        tp=""
+                        if p.type:
+                            tp = "suc"
+                        else:
+                            tp = "unsuc"
+                        self.pBox.append(id = p.id, type = tp, inSuc = completeRoutePresent)
                     self.showResultLabel(r.name, True)
                     break
                 elif a.count > maxPointsIndex[1]:
@@ -210,8 +222,14 @@ class FormWidget(QtWidgets.QWidget):
         if(not completeRoutePresent):
             a = checkRoute(routesArr[maxPointsIndex[1]], points)
             for p in a.points:
-                self.pBox.append(id = p.id, type = p.type, inSuc = completeRoutePresent)
+                tp=""
+                if p.type:
+                    tp = "suc"
+                else:
+                    tp = "unsuc"
+                self.pBox.append(id = p.id, type = tp, inSuc = completeRoutePresent)
                 self.showResultLabel(routesArr[maxPointsIndex[1]].name, False)
+        self.pBox.append(id = "konec", type="sign", inSuc=True)
 
     @QtCore.Slot()
     def sendButtonHandle(self):
@@ -220,17 +238,21 @@ class FormWidget(QtWidgets.QWidget):
 
             msg = QMessageBox()
             
-
-            resp = self.sendReq(self.resultTime, name, self.track, "12.7.")
+            tday = date.today()
+            ftday = tday.strftime("%d.%m.")
+            print(ftday)
+            resp = self.sendReq(self.resultTime, name, self.track, ftday)
 
             if(resp[0]):
 
-                msg.setText(str("Pro zobrazení výsledků načtěte qrcode"))
+                msg.setWindowTitle(str("Pro zobrazení výsledků načtěte qrcode."))
+                
                 image = QRcode_maker.QRcode(resp[1])
 
                 layout = msg.layout()
                 layout.addWidget(image, 1, 1, alignment=Qt.AlignCenter)
             else:
+                msg.setWindowTitle(str("Chyba!"))
                 msg.setText(str("Nastala chyba, zkuste znovu"))
 
 
@@ -240,6 +262,7 @@ class FormWidget(QtWidgets.QWidget):
             self.hideForm()
         else:
             msg = QMessageBox()
+            msg.setWindowTitle(str("Chyba!"))
             msg.setText(str("Nezdolanou trať nelze nahrat!"))
             msg.exec()
 
