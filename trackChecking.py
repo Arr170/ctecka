@@ -40,6 +40,8 @@ def checkRoute(route: Route, scannedPoints: list[int]):
         if scannedPoints[i] == route.route[tracker]:
             CheckPointArr.append(CheckPoint(scannedPoints[i], True))
             tracker +=1
+            if tracker >= len(route.route):
+                break
             countCheck += 1
         else:
             CheckPointArr.append(CheckPoint(scannedPoints[i], False))
