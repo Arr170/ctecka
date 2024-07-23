@@ -37,11 +37,12 @@ def checkRoute(route: Route, scannedPoints: list[int]):
     for i in range(0, len(scannedPoints)):
         # print(i+1, " element")
         # print("scanned: ", scannedPoints[i], " waiting for: ", route.route[tracker])
+        if tracker >= len(route.route):
+            CheckPointArr.append(CheckPoint(scannedPoints[i], False))
+            continue
         if scannedPoints[i] == route.route[tracker]:
             CheckPointArr.append(CheckPoint(scannedPoints[i], True))
             tracker +=1
-            if tracker >= len(route.route):
-                break
             countCheck += 1
         else:
             CheckPointArr.append(CheckPoint(scannedPoints[i], False))
