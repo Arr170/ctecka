@@ -138,10 +138,11 @@ class FormWidget(QtWidgets.QWidget):
             except Exception as e:
                 print(e, "in checkDevice")
                 self.sirConnected = False
-                msg = QMessageBox()
-                msg.setWindowTitle(str("Chyba!"))
-                msg.setText(str(e))
-                msg.exec()
+                if str(e) != "No card in the device.":
+                    msg = QMessageBox()
+                    msg.setWindowTitle(str("Chyba!"))
+                    msg.setText(str(e))
+                    msg.exec()
 
 
     def formateTime(self, time_in_tens_of_millisec):
@@ -272,6 +273,7 @@ class FormWidget(QtWidgets.QWidget):
 
                 
                 self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
+                self.linkImage.setPixmap(self.qrImage)
                 linkText = "Výsledky pro: " + name 
                 self.linkLabel.setText(linkText)
 
