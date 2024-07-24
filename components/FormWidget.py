@@ -321,6 +321,7 @@ class FormWidget(QtWidgets.QWidget):
 
 
     def sendReq(self, time, name, track, date):
+        time = int(time)
         url = "http://127.0.0.1:5000"+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
