@@ -129,7 +129,7 @@ class FormWidget(QtWidgets.QWidget):
                     for a in data["punches"]:
                         arr.append(a[0])
                     print(type(data["finish"]-data["start"]))
-                    self.resultTime = (data["finish"]-data["start"]).total_seconds()*1000
+                    self.resultTime = (data["finish"]-data["start"]).total_seconds()*100
 
                     self.showForm()
                     self.deviceDetected.emit(arr)
