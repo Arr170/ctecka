@@ -6,10 +6,11 @@ from PySide6.QtGui import *
 from components import PointsBox, QRcode_maker
 from trackChecking import *
 import requests
+import os
 from datetime import date
 
 
-BASE_URL="http://127.0.0.1:5000"
+
 
 class FormWidget(QtWidgets.QWidget):
 
@@ -27,10 +28,11 @@ class FormWidget(QtWidgets.QWidget):
 
         
         #elements
-        self.nameLabel = QLabel("Čekám na čip...", alignment = Qt.AlignCenter)
+        self.signLabel = QLabel("Čekám na čip...", alignment = Qt.AlignCenter)
         self.timeLabel = QLabel(alignment = Qt.AlignCenter)
         self.sayResultLabel = QLabel(alignment = Qt.AlignCenter)
         self.sayResultLabelBot = QLabel("Vlevo můžeš vědět, kde je chyba.", alignment = Qt.AlignCenter)
+        self.linkLabel = QLabel("Odkaz na stránku s výsledky:")
 
         self.nameInput = QtWidgets.QLineEdit()
         self.nameInput.setPlaceholderText("zde zadej jméno...")
@@ -41,15 +43,21 @@ class FormWidget(QtWidgets.QWidget):
         self.sendButton.setFixedHeight(50)
         self.sendButton.setFont(QFont("Arial", 20))
 
+        ### testing only ###
+        # self.testButton = QPushButton("TEST")
+        # self.testButton.clicked.connect(self.showForm)
+
+
         self.pBox = PointsBox.PointsBox()
+
+        self.linkImage = QLabel()
+        self.qrImage = QPixmap(QRcode_maker.create_qrcode()) 
+        self.linkImage.setPixmap(self.qrImage)
 
         #layout
         self.grid = QtWidgets.QGridLayout(self)
 
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.SVlayout = QtWidgets.QVBoxLayout()
         self.SH1layout = QtWidgets.QHBoxLayout()
-        self.SH2layout = QtWidgets.QHBoxLayout()       
         #timer to check for available chip
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.connectDevice)
@@ -57,9 +65,13 @@ class FormWidget(QtWidgets.QWidget):
         self.timer.start(1000) 
 
         #add needed elements to layout
+    
         self.grid.addWidget(self.pBox, 0, 0, -1, 1, Qt.AlignLeft)
-        self.grid.addWidget(self.nameLabel, 0, 2, Qt.AlignLeft)
+        self.grid.addWidget(self.signLabel, 0, 1, Qt.AlignCenter)
+        #self.grid.addWidget(self.testButton, 0, 2, Qt.AlignCenter)
         self.grid.addWidget(self.sayResultLabel, 1, 2, Qt.AlignCenter)
+        self.grid.addWidget(self.linkLabel, 1, 1, Qt.AlignLeft)
+        self.grid.addWidget(self.linkImage, 1, 2, Qt.AlignLeft)
         self.grid.addWidget(self.sayResultLabelBot, 2, 2, Qt.AlignCenter)
         self.grid.addWidget(self.timeLabel, 3, 2, Qt.AlignCenter)
         self.grid.addLayout(self.SH1layout, 4, 2, Qt.AlignCenter)
@@ -77,6 +89,7 @@ class FormWidget(QtWidgets.QWidget):
         
         self.timeLabel.hide()
         self.timeLabel.setFont(QFont("Arial", 40))
+        self.linkLabel.setFont(QFont("Arial", 30))
         self.sayResultLabel.hide()
         self.sayResultLabel.setFont(QFont("Arial", 40))
         self.sayResultLabelBot.hide()
@@ -84,10 +97,11 @@ class FormWidget(QtWidgets.QWidget):
         self.nameInput.hide()
         self.sendButton.hide()
         
-        self.nameLabel.setFont(QFont("Arial", 40))
+        self.signLabel.setFont(QFont("Arial", 40))
 
         #some spider web connections 
         self.sendButton.clicked.connect(self.sendButtonHandle)
+        self.nameInput.returnPressed.connect(self.sendButtonHandle)
         # self.sendButton.clicked.connect(self.hideForm)
         # self.sendButton.clicked.connect(self.pBox.clean)
         self.deviceDetected.connect(self.showPoints)
@@ -125,6 +139,11 @@ class FormWidget(QtWidgets.QWidget):
             except Exception as e:
                 print(e, "in checkDevice")
                 self.sirConnected = False
+                msg = QMessageBox()
+                msg.setWindowTitle(str("Chyba!"))
+                msg.setText(str(e))
+                msg.exec()
+
 
     def formateTime(self, time_in_millisec):
         time_in_sec = time_in_millisec // 1000
@@ -140,18 +159,7 @@ class FormWidget(QtWidgets.QWidget):
 
         return formatted
     
-    def showForm(self):
-        self.sayResultLabelBot.hide()
-        self.sendButton.show()
-        
-        self.nameInput.show()
-        self.nameInput.setFocus()
 
-        time = "Čas: "+ str(self.formateTime(int(self.resultTime)))
-        self.timeLabel.setText(time)
-        self.timeLabel.show()
-        self.nameLabel.hide()
-        
     def showResultLabel(self, routeName, succes):
         message = f"Trať {routeName} "
         succTrack = "zdolána úspěšně!"
@@ -163,11 +171,30 @@ class FormWidget(QtWidgets.QWidget):
             self.sayResultLabelBot.show()
         self.sayResultLabel.setText(message)
         self.sayResultLabel.show()
+    
+    @QtCore.Slot()
+    def showForm(self):
+        self.sayResultLabelBot.hide()
+        self.linkImage.hide()
+        self.linkLabel.hide()
+
+        self.sendButton.show()
+        
+        self.nameInput.show()
+        self.nameInput.setFocus()
+
+        time = "Čas: "+ str(self.formateTime(int(self.resultTime)))
+        self.timeLabel.setText(time)
+        self.timeLabel.show()
+        self.signLabel.hide()
 
 
     @QtCore.Slot()
     def hideForm(self):
-        self.nameLabel.show()
+        self.signLabel.show()
+        self.linkImage.show()
+        self.linkLabel.show()
+
         self.nameInput.hide()
         self.nameInput.setText("")
         self.sendButton.hide()
@@ -181,7 +208,7 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
-        data = requests.get(BASE_URL+"/tracks_data")
+        data = requests.get(os.environ["BASE_URL"]+"/tracks_data")
         tracksData = data.json()
 
         routesArr=[]
@@ -233,30 +260,53 @@ class FormWidget(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def sendButtonHandle(self):
-        if(self.trackSucc == True):
+        if(self.trackSucc):
             name = self.nameInput.text()
 
-            msg = QMessageBox()
+            
             
             tday = date.today()
             ftday = tday.strftime("%d.%m.")
-            print(ftday)
             resp = self.sendReq(self.resultTime, name, self.track, ftday)
 
             if(resp[0]):
 
-                msg.setWindowTitle(str("Pro zobrazení výsledků načtěte qrcode."))
                 
-                image = QRcode_maker.QRcode(resp[1])
+                self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
+                linkText = "Výsledky pro: " + name 
+                self.linkLabel.setText(linkText)
 
-                layout = msg.layout()
-                layout.addWidget(image, 1, 1, alignment=Qt.AlignCenter)
             else:
+                msg = QMessageBox()
                 msg.setWindowTitle(str("Chyba!"))
                 msg.setText(str("Nastala chyba, zkuste znovu"))
+                msg.exec()
 
+           
 
-            msg.exec()
+            self.trackSucc = False
+            self.hideForm()
+        elif os.environ["IN_TESTING"]:
+            name = self.nameInput.text()
+
+            
+            
+            tday = date.today()
+            ftday = tday.strftime("%d.%m.")
+            resp = self.sendReq(111111, name, "A", ftday)
+
+            if(resp[0]):
+
+                
+                self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
+                linkText = "Výsledky pro: " + name 
+                self.linkLabel.setText(linkText)
+
+            else:
+                msg = QMessageBox()
+                msg.setWindowTitle(str("Chyba!"))
+                msg.setText(str("Nastala chyba, zkuste znovu"))
+                msg.exec()
 
             self.trackSucc = False
             self.hideForm()
@@ -268,7 +318,7 @@ class FormWidget(QtWidgets.QWidget):
 
 
     def sendReq(self, time, name, track, date):
-        url = BASE_URL+"/external_rslts_upload"
+        url = os.environ["BASE_URL"]+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 

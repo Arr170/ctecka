@@ -4,41 +4,38 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PIL import Image
 from io import BytesIO
+import os 
 import qrcode 
 
-class QRcode(QtWidgets.QWidget):
-    def __init__(self, id):
-        super().__init__()
 
-        self.qrcode = QLabel()
+def create_qrcode(id=''):
+   
 
 
-        url = "http://192.168.0.140:5000" + "?forceFocus=" + str(id)
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(url)
-        qr.make(fit=True)
 
-        img = qr.make_image(fill_color = "black", back_color ="white")
-
-        qr_image_bytes = BytesIO()
-        img.save(qr_image_bytes)
-        img.seek(0)
-
-        img = Image.open(qr_image_bytes)
-        img = self.formateImage(img)
+    url = os.environ["BASE_URL"] + "?forceFocus=" + str(id)
+    qr = qrcode.QRCode(version=1, box_size=7, border=3)
+    qr.add_data(url)
 
 
-        pixmap = QPixmap(img)
-        label = QLabel()
-        label.setPixmap(pixmap)
+    qr.make()
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(label)
+    img = qr.make_image(fill_color = "black", back_color ="white")
+
+    qr_image_bytes = BytesIO()
+    img.save(qr_image_bytes)
+    img.seek(0)
+
+    img = Image.open(qr_image_bytes)
+    img = formateImage(img)
 
 
-    def formateImage(self, image):
-        image = image.convert("RGBA")
-        data = image.tobytes("raw", "RGBA")
-        qimage = QImage(data, image.width, image.height, QImage.Format_RGBA8888)
-        return QPixmap.fromImage(qimage)
+    return img
+
+
+def formateImage(image):
+    image = image.convert("RGBA")
+    data = image.tobytes("raw", "RGBA")
+    qimage = QImage(data, image.width, image.height, QImage.Format_RGBA8888)
+    return QPixmap.fromImage(qimage)
 
