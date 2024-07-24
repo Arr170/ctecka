@@ -145,9 +145,9 @@ class FormWidget(QtWidgets.QWidget):
                 msg.exec()
 
 
-    def formateTime(self, time_in_millisec):
-        time_in_sec = time_in_millisec // 1000
-        millis = time_in_millisec % 1000
+    def formateTime(self, time_in_tens_of_millisec):
+        time_in_sec = time_in_tens_of_millisec // 100
+        millis = time_in_tens_of_millisec % 100
         hours = time_in_sec // 3600
         minutes = (time_in_sec % 3600) // 60
         seconds = time_in_sec % 60
@@ -155,7 +155,7 @@ class FormWidget(QtWidgets.QWidget):
         formatted = ""
         if hours:
             formatted += f"{hours:02d}:"
-        formatted += f"{minutes:02d}:{seconds:02d}.{millis:03d}"
+        formatted += f"{minutes:02d}:{seconds:02d}.{millis:02d}"
 
         return formatted
     
