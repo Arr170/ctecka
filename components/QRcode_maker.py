@@ -9,7 +9,9 @@ import qrcode
 
 
 def create_qrcode(id='', base = ''):
-    url =  "https://festival.obteplice.cz/" + "?forceFocus=" + str(id)
+    url =  "https://festival.obteplice.cz/"
+    if id:
+        url += "?forceFocus=" + str(id)
     qr = qrcode.QRCode(version=1, box_size=7, border=3)
     qr.add_data(url)
 
