@@ -11,7 +11,6 @@ from datetime import date
 
 
 
-
 class FormWidget(QtWidgets.QWidget):
 
     #signal emitted when reader detects chip
@@ -68,7 +67,7 @@ class FormWidget(QtWidgets.QWidget):
     
         self.grid.addWidget(self.pBox, 0, 0, -1, 1, Qt.AlignLeft)
         self.grid.addWidget(self.signLabel, 0, 1, Qt.AlignCenter)
-        #self.grid.addWidget(self.testButton, 0, 2, Qt.AlignCenter)
+        # self.grid.addWidget(self.testButton, 0, 2, Qt.AlignCenter)
         self.grid.addWidget(self.sayResultLabel, 1, 2, Qt.AlignCenter)
         self.grid.addWidget(self.linkLabel, 1, 1, Qt.AlignLeft)
         self.grid.addWidget(self.linkImage, 1, 2, Qt.AlignLeft)
@@ -208,7 +207,7 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
-        data = requests.get(os.environ["BASE_URL"]+"/tracks_data")
+        data = requests.get("http://127.0.0.1:5000"+"/tracks_data")
         tracksData = data.json()
 
         routesArr=[]
@@ -286,30 +285,32 @@ class FormWidget(QtWidgets.QWidget):
 
             self.trackSucc = False
             self.hideForm()
-        elif os.environ["IN_TESTING"]:
-            name = self.nameInput.text()
+
+        ### ADDED FOR TESTING
+        # elif 1:
+        #     name = self.nameInput.text()
 
             
             
-            tday = date.today()
-            ftday = tday.strftime("%d.%m.")
-            resp = self.sendReq(111111, name, "A", ftday)
+        #     tday = date.today()
+        #     ftday = tday.strftime("%d.%m.")
+        #     resp = self.sendReq(111111, name, "A", ftday)
 
-            if(resp[0]):
+        #     if(resp[0]):
 
                 
-                self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
-                linkText = "Výsledky pro: " + name 
-                self.linkLabel.setText(linkText)
+        #         self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
+        #         linkText = "Výsledky pro: " + name 
+        #         self.linkLabel.setText(linkText)
 
-            else:
-                msg = QMessageBox()
-                msg.setWindowTitle(str("Chyba!"))
-                msg.setText(str("Nastala chyba, zkuste znovu"))
-                msg.exec()
+        #     else:
+        #         msg = QMessageBox()
+        #         msg.setWindowTitle(str("Chyba!"))
+        #         msg.setText(str("Nastala chyba, zkuste znovu"))
+        #         msg.exec()
 
-            self.trackSucc = False
-            self.hideForm()
+        #     self.trackSucc = False
+        #     self.hideForm()
         else:
             msg = QMessageBox()
             msg.setWindowTitle(str("Chyba!"))
@@ -318,7 +319,7 @@ class FormWidget(QtWidgets.QWidget):
 
 
     def sendReq(self, time, name, track, date):
-        url = os.environ["BASE_URL"]+"/external_rslts_upload"
+        url = "http://127.0.0.1:5000"+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 

@@ -8,12 +8,8 @@ import os
 import qrcode 
 
 
-def create_qrcode(id=''):
-   
-
-
-
-    url = os.environ["BASE_URL"] + "?forceFocus=" + str(id)
+def create_qrcode(id='', base = ''):
+    url =  "https://festival.obteplice.cz/" + "?forceFocus=" + str(id)
     qr = qrcode.QRCode(version=1, box_size=7, border=3)
     qr.add_data(url)
 
