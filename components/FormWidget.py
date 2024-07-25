@@ -32,15 +32,20 @@ class FormWidget(QtWidgets.QWidget):
         self.sayResultLabel = QLabel(alignment = Qt.AlignCenter)
         self.sayResultLabelBot = QLabel("Vlevo můžeš vědět, kde je chyba.", alignment = Qt.AlignCenter)
         self.linkLabel = QLabel("Odkaz na stránku s výsledky:")
+        self.warningLabel = QLabel("Odesláním souhlasíte se zveřejněním vašeho času a vámi zadané přezdívky na online výsledkové listině.")
 
         self.nameInput = QtWidgets.QLineEdit()
-        self.nameInput.setPlaceholderText("zde zadej jméno...")
+        self.nameInput.setMaxLength(40)
+        self.nameInput.setPlaceholderText("Zde zadej přezdívku...")
         self.nameInput.setFixedHeight(50)
         self.nameInput.setFont(QFont("Arial", 20))
 
         self.sendButton =  QtWidgets.QPushButton(" Odeslat ")
         self.sendButton.setFixedHeight(50)
         self.sendButton.setFont(QFont("Arial", 20))
+
+        self.cancelButton = QPushButton(" Zrušit ")
+        self.cancelButton.hide()
 
         ### testing only ###
         # self.testButton = QPushButton("TEST")
@@ -67,13 +72,15 @@ class FormWidget(QtWidgets.QWidget):
     
         self.grid.addWidget(self.pBox, 0, 0, -1, 1, Qt.AlignLeft)
         self.grid.addWidget(self.signLabel, 0, 1, Qt.AlignCenter)
-        # self.grid.addWidget(self.testButton, 0, 2, Qt.AlignCenter)
+        # self.grid.addWidget(self.testButton, 0, 2, Qt.AlignLeft)
+        self.grid.addWidget(self.cancelButton, 0, 2, Qt.AlignLeft)
         self.grid.addWidget(self.sayResultLabel, 1, 2, Qt.AlignCenter)
         self.grid.addWidget(self.linkLabel, 1, 1, Qt.AlignLeft)
         self.grid.addWidget(self.linkImage, 1, 2, Qt.AlignLeft)
         self.grid.addWidget(self.sayResultLabelBot, 2, 2, Qt.AlignCenter)
         self.grid.addWidget(self.timeLabel, 3, 2, Qt.AlignCenter)
-        self.grid.addLayout(self.SH1layout, 4, 2, Qt.AlignCenter)
+        self.grid.addLayout(self.SH1layout, 4, 2, Qt.AlignBottom)
+        self.grid.addWidget(self.warningLabel, 5, 2, Qt.AlignTop)
 
        
         self.SH1layout.addWidget(self.nameInput)
@@ -95,15 +102,16 @@ class FormWidget(QtWidgets.QWidget):
         self.sayResultLabelBot.setFont(QFont("Arial", 40))
         self.nameInput.hide()
         self.sendButton.hide()
+        self.warningLabel.hide()
         
         self.signLabel.setFont(QFont("Arial", 40))
 
         #some spider web connections 
         self.sendButton.clicked.connect(self.sendButtonHandle)
         self.nameInput.returnPressed.connect(self.sendButtonHandle)
-        # self.sendButton.clicked.connect(self.hideForm)
-        # self.sendButton.clicked.connect(self.pBox.clean)
+        self.cancelButton.clicked.connect(self.hideForm)
         self.deviceDetected.connect(self.showPoints)
+
 
 
     @QtCore.Slot()
@@ -162,12 +170,15 @@ class FormWidget(QtWidgets.QWidget):
 
     def showResultLabel(self, routeName, succes):
         message = f"Trať {routeName} "
-        succTrack = "zdolána úspěšně!"
         unsuccTrack = "nebyla zcela splněna."
         if succes:
-            message = message + succTrack
+            self.nameInput.setReadOnly(False)
+            self.sendButton.setEnabled(True)
+            message = f"Trať {routeName} zdolána úspěšně!"
         else:
-            message = message + unsuccTrack
+            self.nameInput.setReadOnly(True)
+            self.sendButton.setEnabled(False)
+            message = f"Nesplněnou trať nejde dokončit (trať {routeName})"
             self.sayResultLabelBot.show()
         self.sayResultLabel.setText(message)
         self.sayResultLabel.show()
@@ -177,16 +188,18 @@ class FormWidget(QtWidgets.QWidget):
         self.sayResultLabelBot.hide()
         self.linkImage.hide()
         self.linkLabel.hide()
+        self.signLabel.hide()
 
+        self.cancelButton.show()
         self.sendButton.show()
-        
+        self.warningLabel.show()
         self.nameInput.show()
         self.nameInput.setFocus()
 
         time = "Čas: "+ str(self.formateTime(int(self.resultTime)))
         self.timeLabel.setText(time)
         self.timeLabel.show()
-        self.signLabel.hide()
+        
 
 
     @QtCore.Slot()
@@ -195,6 +208,8 @@ class FormWidget(QtWidgets.QWidget):
         self.linkImage.show()
         self.linkLabel.show()
 
+        self.cancelButton.hide()
+        self.warningLabel.hide()
         self.nameInput.hide()
         self.nameInput.setText("")
         self.sendButton.hide()
@@ -260,10 +275,24 @@ class FormWidget(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def sendButtonHandle(self):
-        if(self.trackSucc):
-            name = self.nameInput.text()
+
+        name = self.nameInput.text()
+
+        if name == '':
+
+                # msg = QMessageBox()
+                # msg.setWindowTitle(str("Chyba!"))
+                # msg.setText(str("Zadejte přezdívku!"))
+                # msg.exec()
+
+                # lze bud vyuzit odeslani prazdneho jmena jako zruzeni formulare, nebo zobrazit okenko s chybou
+
+                self.hideForm()
+
+        elif(self.trackSucc):
 
             
+                
             
             tday = date.today()
             ftday = tday.strftime("%d.%m.")
@@ -276,13 +305,6 @@ class FormWidget(QtWidgets.QWidget):
                 self.linkImage.setPixmap(self.qrImage)
                 linkText = "Výsledky pro: " + name 
                 self.linkLabel.setText(linkText)
-
-            else:
-                msg = QMessageBox()
-                msg.setWindowTitle(str("Chyba!"))
-                msg.setText(str("Nastala chyba, zkuste znovu"))
-                msg.exec()
-
            
 
             self.trackSucc = False
@@ -305,14 +327,14 @@ class FormWidget(QtWidgets.QWidget):
         #         linkText = "Výsledky pro: " + name 
         #         self.linkLabel.setText(linkText)
 
-        #     else:
-        #         msg = QMessageBox()
-        #         msg.setWindowTitle(str("Chyba!"))
-        #         msg.setText(str("Nastala chyba, zkuste znovu"))
-        #         msg.exec()
+            # else:
+            #     msg = QMessageBox()
+            #     msg.setWindowTitle(str("Chyba!"))
+            #     msg.setText(str("Nastala chyba, zkuste znovu"))
+            #     msg.exec()
 
-        #     self.trackSucc = False
-        #     self.hideForm()
+            # self.trackSucc = False
+            # self.hideForm()
         else:
             msg = QMessageBox()
             msg.setWindowTitle(str("Chyba!"))
