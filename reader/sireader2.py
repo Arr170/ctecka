@@ -1515,6 +1515,15 @@ class SIReader(object):
         ret['finish'] = SIReader._decode_time(data[card['FT']:card['FT']+2], time_day, reftime)
         ret['finish_code'] = SIReader._decode_station_code(code, time_day)
 
+        # Not worth upstreaming; only works if "sprint 4ms" is selected on start/finish
+        # Because us data replaces start/finish number
+        if card_type == 'SI8':
+            start_us = data[13] * 1e6 / 256
+            finish_us = data[17] * 1e6 / 256
+
+            ret['start'] += timedelta(microseconds=round(start_us))
+            ret['finish'] += timedelta(microseconds=round(finish_us))
+
         time_day = data[card['CTD']] if card['CTD'] else None
         code = data[card['CHN']] if card['CHN'] is not None else None
         ret['check'] = SIReader._decode_time(data[card['CT']:card['CT']+2], time_day, reftime)
