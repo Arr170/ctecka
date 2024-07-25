@@ -224,7 +224,14 @@ class FormWidget(QtWidgets.QWidget):
     def showPoints(self, points):
 
         data = requests.get("http://127.0.0.1:5000"+"/tracks_data")
-        tracksData = data.json()
+        try:
+            tracksData = data.json()
+        except Exception as e: 
+            msg = QMessageBox()
+            err = "Chyba spojení, "+ str(e)
+            msg.setWindowTitle(str("Chyba!"))
+            msg.setText(str(err))
+            msg.exec()
 
         routesArr=[]
 
@@ -327,14 +334,14 @@ class FormWidget(QtWidgets.QWidget):
         #         linkText = "Výsledky pro: " + name 
         #         self.linkLabel.setText(linkText)
 
-            # else:
-            #     msg = QMessageBox()
-            #     msg.setWindowTitle(str("Chyba!"))
-            #     msg.setText(str("Nastala chyba, zkuste znovu"))
-            #     msg.exec()
+        #     else:
+        #         msg = QMessageBox()
+        #         msg.setWindowTitle(str("Chyba!"))
+        #         msg.setText(str("Nastala chyba, zkuste znovu"))
+        #         msg.exec()
 
-            # self.trackSucc = False
-            # self.hideForm()
+        #     self.trackSucc = False
+        #     self.hideForm()
         else:
             msg = QMessageBox()
             msg.setWindowTitle(str("Chyba!"))
@@ -354,8 +361,14 @@ class FormWidget(QtWidgets.QWidget):
             "secret": secret
         }
 
-        r = requests.post(url, json=data_to_send)
-        print( r)
+        try:
+            r = requests.post(url, json=data_to_send)
+        except Exception as e:
+            msg = QMessageBox()
+            err = "Chyba spojení, "+ str(e)
+            msg.setWindowTitle(str("Chyba!"))
+            msg.setText(str(err))
+            msg.exec()
         data = r.json()
 
         return (True, data["id"])
