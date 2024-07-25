@@ -12,6 +12,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication()
 
     widget = FormWidget.FormWidget()
-    widget.showMaximized()
+    # widget.showMaximized()
+    widget.show()
 
     sys.exit(app.exec())
