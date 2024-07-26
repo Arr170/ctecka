@@ -1479,7 +1479,7 @@ class SIReader(object):
         For cards newer than SI5, there are possibly two extra bits in the ptd byte,
         allowing codes up to 1023 (although in practice these are rarely used by 
         organizers as it would preclude the use of SI5 cards). (except not)"""
-	return raw_code
+        return raw_code
 
 
     @staticmethod
