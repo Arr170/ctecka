@@ -169,12 +169,12 @@ class FormWidget(QtWidgets.QWidget):
     
 
     def showResultLabel(self, routeName, succes):
-        message = f"Trať {routeName} "
+        message = f"{routeName} "
         unsuccTrack = "nebyla zcela splněna."
         if succes:
             self.nameInput.setReadOnly(False)
             self.sendButton.setEnabled(True)
-            message = f"Trať {routeName} zdolána úspěšně!"
+            message = f"{routeName} zdolána úspěšně!"
         else:
             self.nameInput.setReadOnly(True)
             self.sendButton.setEnabled(False)
