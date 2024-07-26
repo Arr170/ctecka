@@ -1478,11 +1478,8 @@ class SIReader(object):
         """Decodes the station code read from an si card.
         For cards newer than SI5, there are possibly two extra bits in the ptd byte,
         allowing codes up to 1023 (although in practice these are rarely used by 
-        organizers as it would preclude the use of SI5 cards)."""
-        if raw_ptd is not None:
-            return ((raw_ptd & 0xc0) << 2) + raw_code
-        else:
-            return raw_code
+        organizers as it would preclude the use of SI5 cards). (except not)"""
+	return raw_code
 
 
     @staticmethod
