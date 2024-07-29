@@ -146,20 +146,11 @@ class FormWidget(QtWidgets.QWidget):
             except Exception as e:
                 print(e, "in checkDevice")
                 self.sirConnected = False
-                msg = QMessageBox()
-                msg.setWindowTitle(str("Chyba!"))
-                msg.setStyleSheet("background-color: rgb(255, 160, 160);")
-                match str(e):
-                    case "No card in the device.":
-                        return
-                    case "SI-Card removed during command.":
-                        return
-                    case "unsupported operand type(s) for +=: 'NoneType' and 'datetime.timedelta'":
-                        msg.setText("Nebyl oražen 'Start' nebo 'Finish'")
-                    case _:
-                        msg.setText(str(e))
-                msg.exec()
-
+                if str(e) != "No card in the device.":
+                    msg = QMessageBox()
+                    msg.setWindowTitle(str("Chyba!"))
+                    msg.setText(str(e))
+                    msg.exec()
 
 
     def formateTime(self, time_in_tens_of_millisec):
@@ -187,7 +178,7 @@ class FormWidget(QtWidgets.QWidget):
         else:
             self.nameInput.setReadOnly(True)
             self.sendButton.setEnabled(False)
-            message = f"Nesplněnou trať nejde dokončit ({routeName})"
+            message = f"Nesplněnou trať nejde dokončit (trať {routeName})"
             self.sayResultLabelBot.show()
         self.sayResultLabel.setText(message)
         self.sayResultLabel.show()
@@ -232,8 +223,8 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
+        data = requests.get("http://127.0.0.1:5000"+"/tracks_data")
         try:
-            data = requests.get("https://festival.obteplice.cz" + "/tracks_data")
             tracksData = data.json()
         except Exception as e: 
             msg = QMessageBox()
@@ -241,7 +232,6 @@ class FormWidget(QtWidgets.QWidget):
             msg.setWindowTitle(str("Chyba!"))
             msg.setText(str(err))
             msg.exec()
-            return
 
         routesArr=[]
 
@@ -361,7 +351,7 @@ class FormWidget(QtWidgets.QWidget):
 
     def sendReq(self, time, name, track, date):
         time = int(time)
-        url = "https://festival.obteplice.cz"+"/external_rslts_upload"
+        url = "http://127.0.0.1:5000"+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 
