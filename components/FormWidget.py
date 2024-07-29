@@ -223,7 +223,7 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
-        data = requests.get("http://127.0.0.1:5000"+"/tracks_data")
+        data = requests.get("https://festival.obteplice.cz"+"/tracks_data")
         try:
             tracksData = data.json()
         except Exception as e: 
@@ -351,7 +351,7 @@ class FormWidget(QtWidgets.QWidget):
 
     def sendReq(self, time, name, track, date):
         time = int(time)
-        url = "http://127.0.0.1:5000"+"/external_rslts_upload"
+        url = "https://festival.obteplice.cz"+"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 
