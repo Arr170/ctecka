@@ -251,7 +251,7 @@ class FormWidget(QtWidgets.QWidget):
             for point in track["points"]:
                 rPoints.append(int(point["number"]))
             r.setRoute(rPoints)
-            routesArr.append(r)    
+            routesArr.insert(0, r)    
 
         
         self.pBox.clean()
