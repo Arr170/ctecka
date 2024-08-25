@@ -4,12 +4,17 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PIL import Image
 from io import BytesIO
+from dotenv import load_dotenv
 import os 
 import qrcode 
 
+load_dotenv()
+
+BASE_URL = os.environ["BASE_URL"]
+
 
 def create_qrcode(id='', base = ''):
-    url =  "https://festival.obteplice.cz/"
+    url =  BASE_URL
     if id:
         url += "?forceFocus=" + str(id)
     qr = qrcode.QRCode(version=1, box_size=7, border=3)

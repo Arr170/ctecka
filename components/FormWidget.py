@@ -7,7 +7,13 @@ from components import PointsBox, QRcode_maker
 from trackChecking import *
 import requests
 import os
+from dotenv import load_dotenv
 from datetime import date
+
+load_dotenv()
+
+BASE_URL = os.environ["BASE_URL"]
+IN_TESTING = os.environ["IN_TESTING"]
 
 
 
@@ -25,6 +31,7 @@ class FormWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
+        print(IN_TESTING)
         
         #elements
         self.signLabel = QLabel("Čekám na čip...", alignment = Qt.AlignCenter)
@@ -48,8 +55,10 @@ class FormWidget(QtWidgets.QWidget):
         self.cancelButton.hide()
 
         ### testing only ###
-        # self.testButton = QPushButton("TEST")
-        # self.testButton.clicked.connect(self.showForm)
+        if IN_TESTING=='1':
+            print("IN TESTING")
+            self.testButton = QPushButton("TEST")
+            self.testButton.clicked.connect(self.showForm)
 
 
         self.pBox = PointsBox.PointsBox()
@@ -72,7 +81,6 @@ class FormWidget(QtWidgets.QWidget):
     
         self.grid.addWidget(self.pBox, 0, 0, -1, 1, Qt.AlignLeft)
         self.grid.addWidget(self.signLabel, 0, 1, Qt.AlignCenter)
-        # self.grid.addWidget(self.testButton, 0, 2, Qt.AlignLeft)
         self.grid.addWidget(self.cancelButton, 0, 2, Qt.AlignLeft)
         self.grid.addWidget(self.sayResultLabel, 1, 2, Qt.AlignCenter)
         self.grid.addWidget(self.linkLabel, 1, 1, Qt.AlignLeft)
@@ -81,16 +89,12 @@ class FormWidget(QtWidgets.QWidget):
         self.grid.addWidget(self.timeLabel, 3, 2, Qt.AlignCenter)
         self.grid.addLayout(self.SH1layout, 4, 2, Qt.AlignBottom)
         self.grid.addWidget(self.warningLabel, 5, 2, Qt.AlignTop)
+        if IN_TESTING == '1':
+            self.grid.addWidget(self.testButton, 0, 2, Qt.AlignLeft)
 
        
         self.SH1layout.addWidget(self.nameInput)
         self.SH1layout.addWidget(self.sendButton)
-
-        # self.SVlayout.addWidget(self.sayResultLabel)
-        # self.SVlayout.addWidget(self.timeLabel)
-        # self.SVlayout.addLayout(self.SH1layout)
-
-        # self.layout.addLayout(self.SVlayout)
 
         
         self.timeLabel.hide()
@@ -223,7 +227,7 @@ class FormWidget(QtWidgets.QWidget):
     @QtCore.Slot()
     def showPoints(self, points):
 
-        data = requests.get("https://festival.obteplice.cz"+"/tracks_data")
+        data = requests.get(BASE_URL+"/tracks_data")
         try:
             tracksData = data.json()
         except Exception as e: 
@@ -318,30 +322,30 @@ class FormWidget(QtWidgets.QWidget):
             self.hideForm()
 
         ### ADDED FOR TESTING
-        # elif 1:
-        #     name = self.nameInput.text()
+        elif IN_TESTING == '1':
+            name = self.nameInput.text()
 
             
             
-        #     tday = date.today()
-        #     ftday = tday.strftime("%d.%m.")
-        #     resp = self.sendReq(111111, name, "A", ftday)
+            tday = date.today()
+            ftday = tday.strftime("%d.%m.")
+            resp = self.sendReq(111111, name, "A", ftday)
 
-        #     if(resp[0]):
+            if(resp[0]):
 
                 
-        #         self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
-        #         linkText = "Výsledky pro: " + name 
-        #         self.linkLabel.setText(linkText)
+                self.qrImage = QPixmap(QRcode_maker.create_qrcode(resp[1]))
+                linkText = "Výsledky pro: " + name 
+                self.linkLabel.setText(linkText)
 
-        #     else:
-        #         msg = QMessageBox()
-        #         msg.setWindowTitle(str("Chyba!"))
-        #         msg.setText(str("Nastala chyba, zkuste znovu"))
-        #         msg.exec()
+            else:
+                msg = QMessageBox()
+                msg.setWindowTitle(str("Chyba!"))
+                msg.setText(str("Nastala chyba, zkuste znovu"))
+                msg.exec()
 
-        #     self.trackSucc = False
-        #     self.hideForm()
+            self.trackSucc = False
+            self.hideForm()
         else:
             msg = QMessageBox()
             msg.setWindowTitle(str("Chyba!"))
@@ -351,7 +355,7 @@ class FormWidget(QtWidgets.QWidget):
 
     def sendReq(self, time, name, track, date):
         time = int(time)
-        url = "https://festival.obteplice.cz"+"/external_rslts_upload"
+        url = BASE_URL +"/external_rslts_upload"
         secret = "mamamia"
         data_to_send={
             "name": name, 
